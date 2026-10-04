@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/de/jukromer/LunchTray/icons/scalable/actions">
+    <file alias="leaf-symbolic.svg">icons/actions/leaf-symbolic.svg</file>
+    <file alias="egg-symbolic.svg">icons/actions/egg-symbolic.svg</file>
+  </gresource>
+  <gresource prefix="/de/jukromer/LunchTray/icons/scalable/apps">
+    <file alias="de.jukromer.LunchTray.svg">icons/hicolor/scalable/apps/de.jukromer.LunchTray.svg</file>
+  </gresource>
+</gresources>
