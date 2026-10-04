@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
@@ -307,7 +308,7 @@ impl App {
 
     fn subtitle(&self) -> String {
         match self.days.get(self.selected) {
-            Some(day) => day.date.format("%A, %B %-d").to_string(),
+            Some(day) => day_label(day.date, chrono::Local::now().date_naive()),
             None => String::new(),
         }
     }
@@ -331,9 +332,44 @@ fn next_index(selected: usize, day_count: usize) -> usize {
     }
 }
 
+fn day_label(date: NaiveDate, today: NaiveDate) -> String {
+    if date == today {
+        String::from("Today")
+    } else if Some(date) == today.succ_opt() {
+        String::from("Tomorrow")
+    } else {
+        date.format("%A, %B %-d").to_string()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn date(text: &str) -> NaiveDate {
+        text.parse().unwrap()
+    }
+
+    #[test]
+    fn labels_today() {
+        assert_eq!(day_label(date("2026-10-05"), date("2026-10-05")), "Today");
+    }
+
+    #[test]
+    fn labels_tomorrow() {
+        assert_eq!(
+            day_label(date("2026-10-06"), date("2026-10-05")),
+            "Tomorrow"
+        );
+    }
+
+    #[test]
+    fn labels_other_days_with_date() {
+        assert_eq!(
+            day_label(date("2026-10-07"), date("2026-10-05")),
+            "Wednesday, October 7"
+        );
+    }
 
     #[test]
     fn previous_goes_back_one_day() {
