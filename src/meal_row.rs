@@ -70,4 +70,19 @@ mod tests {
     fn empty_without_price() {
         assert_eq!(format_price(None), "");
     }
+
+    #[test]
+    fn strips_price_from_category() {
+        assert_eq!(short_category("Tellergericht I - 3,60"), "Tellergericht I");
+    }
+
+    #[test]
+    fn keeps_category_without_price() {
+        assert_eq!(short_category("Beilage"), "Beilage");
+    }
+
+    #[test]
+    fn keeps_dash_that_is_not_a_price() {
+        assert_eq!(short_category("Aktion - Pizza"), "Aktion - Pizza");
+    }
 }
