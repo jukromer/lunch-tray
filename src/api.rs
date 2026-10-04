@@ -1,10 +1,31 @@
+use std::sync::LazyLock;
+use std::time::Duration;
+
 use crate::model::{Canteen, Day};
 
 const BASE_URL: &str = "https://openmensa.org/api/v2";
 
+static CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
+    reqwest::Client::builder()
+        .user_agent(concat!(
+            "LunchTray/",
+            env!("CARGO_PKG_VERSION"),
+            " (https://github.com/jukromer/lunch-tray)"
+        ))
+        .timeout(Duration::from_secs(15))
+        .build()
+        .expect("Failed to create the HTTP client")
+});
+
 pub async fn fetch_meals(canteen_id: u32) -> Result<Vec<Day>, reqwest::Error> {
     let url = format!("{BASE_URL}/canteens/{canteen_id}/meals");
-    reqwest::get(url).await?.error_for_status()?.json().await
+    CLIENT
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await
 }
 
 pub async fn fetch_canteens() -> Result<Vec<Canteen>, reqwest::Error> {
@@ -12,7 +33,7 @@ pub async fn fetch_canteens() -> Result<Vec<Canteen>, reqwest::Error> {
     let mut page = 1;
     loop {
         let url = format!("{BASE_URL}/canteens?limit=500&page={page}");
-        let response = reqwest::get(url).await?.error_for_status()?;
+        let response = CLIENT.get(url).send().await?.error_for_status()?;
         let total_pages: u32 = response
             .headers()
             .get("x-total-pages")
