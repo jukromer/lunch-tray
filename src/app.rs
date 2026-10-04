@@ -3,7 +3,7 @@ use relm4::prelude::*;
 
 use crate::api;
 use crate::meal_row::MealRow;
-use crate::model::Day;
+use crate::model::{Day, PriceGroup};
 
 //ID of THA for early testing purpose
 const CANTEEN_ID: u32 = 803;
@@ -12,6 +12,7 @@ pub struct App {
     state: State,
     days: Vec<Day>,
     selected: usize,
+    price_group: PriceGroup,
     meals: FactoryVecDeque<MealRow>,
 }
 
@@ -27,6 +28,7 @@ pub enum AppMsg {
     Reload,
     PreviousDay,
     NextDay,
+    SetPriceGroup(PriceGroup),
 }
 
 #[derive(Debug)]
@@ -69,6 +71,37 @@ impl Component for App {
                         #[watch]
                         set_sensitive: model.selected + 1 < model.days.len(),
                         connect_clicked => AppMsg::NextDay,
+                    },
+                },
+                add_top_bar = &adw::Clamp {
+                    set_maximum_size: 400,
+                    set_margin_start: 12,
+                    set_margin_end: 12,
+                    set_margin_bottom: 6,
+
+                    adw::ToggleGroup {
+                        set_homogeneous: true,
+
+                        add = adw::Toggle {
+                            set_label: Some("Students"),
+                            set_name: Some(PriceGroup::Students.name()),
+                        },
+                        add = adw::Toggle {
+                            set_label: Some("Employees"),
+                            set_name: Some(PriceGroup::Employees.name()),
+                        },
+                        add = adw::Toggle {
+                            set_label: Some("Guests"),
+                            set_name: Some(PriceGroup::Guests.name()),
+                        },
+
+                        set_active_name: Some(model.price_group.name()),
+                        connect_active_name_notify[sender] => move |group| {
+                            let name = group.active_name().unwrap_or_default();
+                            if let Some(price_group) = PriceGroup::from_name(&name) {
+                                sender.input(AppMsg::SetPriceGroup(price_group));
+                            }
+                        },
                     },
                 },
 
@@ -132,6 +165,7 @@ impl Component for App {
             state: State::Loading,
             days: Vec::new(),
             selected: 0,
+            price_group: PriceGroup::Students,
             meals: FactoryVecDeque::builder().launch_default().detach(),
         };
         let meal_list = model.meals.widget();
@@ -154,6 +188,10 @@ impl Component for App {
             }
             AppMsg::NextDay => {
                 self.selected = next_index(self.selected, self.days.len());
+                self.show_selected_day();
+            }
+            AppMsg::SetPriceGroup(price_group) => {
+                self.price_group = price_group;
                 self.show_selected_day();
             }
         }
@@ -185,7 +223,7 @@ impl App {
         meals.clear();
         if let Some(day) = self.days.get(self.selected) {
             for meal in &day.meals {
-                meals.push_back(meal.clone());
+                meals.push_back((meal.clone(), self.price_group));
             }
         }
     }

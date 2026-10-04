@@ -1,16 +1,17 @@
 use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
-use crate::model::Meal;
+use crate::model::{Meal, PriceGroup};
 
 #[derive(Debug)]
 pub struct MealRow {
     meal: Meal,
+    price_group: PriceGroup,
 }
 
 #[relm4::factory(pub)]
 impl FactoryComponent for MealRow {
-    type Init = Meal;
+    type Init = (Meal, PriceGroup);
     type Input = ();
     type Output = ();
     type CommandOutput = ();
@@ -23,14 +24,18 @@ impl FactoryComponent for MealRow {
             set_subtitle: &self.meal.category,
 
             add_suffix = &gtk::Label {
-                set_label: &format_price(self.meal.prices.students),
+                set_label: &format_price(self.price_group.price(&self.meal.prices)),
                 add_css_class: "numeric",
             },
         }
     }
 
-    fn init_model(meal: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
-        Self { meal }
+    fn init_model(
+        (meal, price_group): Self::Init,
+        _index: &DynamicIndex,
+        _sender: FactorySender<Self>,
+    ) -> Self {
+        Self { meal, price_group }
     }
 }
 
