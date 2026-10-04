@@ -1099,6 +1099,7 @@ dependencies = [
  "relm4",
  "reqwest",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

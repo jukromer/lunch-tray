@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct Day {
@@ -21,7 +21,7 @@ pub struct Prices {
     pub others: Option<f64>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Canteen {
     pub id: u32,
     pub name: String,
@@ -35,7 +35,7 @@ impl Canteen {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum PriceGroup {
     Students,
     Employees,

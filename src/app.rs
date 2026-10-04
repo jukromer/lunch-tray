@@ -3,6 +3,7 @@ use relm4::prelude::*;
 
 use crate::api;
 use crate::canteen_picker::{CanteenPicker, PickerOutput};
+use crate::config::{self, Config};
 use crate::meal_row::MealRow;
 use crate::model::{Canteen, Day, PriceGroup};
 
@@ -170,22 +171,19 @@ impl Component for App {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
+        let config = config::load();
         let picker = CanteenPicker::builder()
             .launch(())
             .forward(sender.input_sender(), |output| match output {
                 PickerOutput::Selected(canteen) => AppMsg::SelectCanteen(canteen),
             });
         let model = App {
-            canteen: Canteen {
-                id: 803,
-                name: String::from("Mensa TH Augsburg"),
-                city: String::from("Augsbrurg"),
-            },
+            canteen: config.canteen,
             picker,
             state: State::Loading,
             days: Vec::new(),
             selected: 0,
-            price_group: PriceGroup::Students,
+            price_group: config.price_group,
             meals: FactoryVecDeque::builder().launch_default().detach(),
         };
         let meal_list = model.meals.widget();
@@ -213,6 +211,7 @@ impl Component for App {
             AppMsg::SetPriceGroup(price_group) => {
                 self.price_group = price_group;
                 self.show_selected_day();
+                self.save_config();
             }
             AppMsg::OpenPicker => {
                 self.picker.widget().present(Some(root));
@@ -221,6 +220,7 @@ impl Component for App {
                 self.canteen = canteen;
                 self.state = State::Loading;
                 load_meals(&sender, self.canteen.id);
+                self.save_config();
             }
         }
     }
@@ -246,6 +246,16 @@ impl Component for App {
 }
 
 impl App {
+    fn save_config(&self) {
+        let config = Config {
+            canteen: self.canteen.clone(),
+            price_group: self.price_group,
+        };
+        if let Err(error) = config::save(&config) {
+            eprintln!("Could not save settings: {error}");
+        }
+    }
+
     fn show_selected_day(&mut self) {
         let mut meals = self.meals.guard();
         meals.clear();
