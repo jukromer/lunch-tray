@@ -6,7 +6,7 @@ mod model;
 
 use relm4::RelmApp;
 
-const APP_ID: &str = "de.kromer.Lunchtray";
+const APP_ID: &str = "de.jukromer.LunchTray";
 
 fn main() {
     let app = RelmApp::new(APP_ID);

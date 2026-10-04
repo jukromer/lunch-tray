@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- tray: edge, top, recess -->
+  <rect x="6" y="40" width="116" height="70" rx="16" fill="#c64600"/>
+  <rect x="6" y="30" width="116" height="70" rx="16" fill="#ffa348"/>
+  <rect x="14" y="38" width="100" height="54" rx="9" fill="#ff7800"/>
+
+  <!-- plate -->
+  <ellipse cx="50" cy="69" rx="25" ry="20" fill="#c64600" opacity="0.35"/>
+  <ellipse cx="50" cy="65" rx="25" ry="20" fill="#ffffff"/>
+  <ellipse cx="50" cy="65" rx="17" ry="13" fill="#f6f5f4" stroke="#deddda" stroke-width="2"/>
+  <ellipse cx="46" cy="63" rx="7" ry="4" fill="#33d17a" transform="rotate(-25 46 63)"/>
+  <circle cx="55" cy="67" r="4.5" fill="#ed333b"/>
+
+  <!-- fork -->
+  <g fill="#c64600" opacity="0.35" transform="translate(0 2)">
+    <rect x="84" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="88" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="92" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="84" y="53" width="10.5" height="5" rx="2.5"/>
+    <rect x="87" y="56" width="4.5" height="30" rx="2.25"/>
+  </g>
+  <g fill="#f6f5f4">
+    <rect x="84" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="88" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="92" y="44" width="2.5" height="12" rx="1.25"/>
+    <rect x="84" y="53" width="10.5" height="5" rx="2.5"/>
+    <rect x="87" y="56" width="4.5" height="30" rx="2.25"/>
+  </g>
+
+  <!-- knife -->
+  <g fill="#c64600" opacity="0.35" transform="translate(0 2)">
+    <path d="M101 44 C107 46 108 56 107 64 L101 64 Z"/>
+    <rect x="101" y="62" width="5" height="24" rx="2.5"/>
+  </g>
+  <g fill="#f6f5f4">
+    <path d="M101 44 C107 46 108 56 107 64 L101 64 Z"/>
+    <rect x="101" y="62" width="5" height="24" rx="2.5"/>
+  </g>
+</svg>
