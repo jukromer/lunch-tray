@@ -7,6 +7,7 @@ use crate::model::{Meal, PriceGroup};
 pub struct MealRow {
     meal: Meal,
     price_group: PriceGroup,
+    diet: Option<Diet>,
 }
 
 #[relm4::factory(pub)]
@@ -23,6 +24,13 @@ impl FactoryComponent for MealRow {
             set_title: &self.meal.name,
             set_subtitle: &subtitle(&self.meal),
 
+            add_suffix = &gtk::Image {
+                set_visible: self.diet.is_some(),
+                set_icon_name: self.diet.map(Diet::icon_name),
+                set_tooltip_text: self.diet.map(Diet::label),
+                add_css_class: self.diet.map_or("dim-label", Diet::css_class),
+            },
+
             add_suffix = &gtk::Label {
                 set_label: &format_price(self.price_group.price(&self.meal.prices)),
                 add_css_class: "numeric",
@@ -35,7 +43,51 @@ impl FactoryComponent for MealRow {
         _index: &DynamicIndex,
         _sender: FactorySender<Self>,
     ) -> Self {
-        Self { meal, price_group }
+        let diet = diet(&meal.notes);
+        Self {
+            meal,
+            price_group,
+            diet,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Diet {
+    Vegan,
+    Vegetarian,
+}
+
+impl Diet {
+    fn icon_name(self) -> &'static str {
+        match self {
+            Diet::Vegan => "leaf-symbolic",
+            Diet::Vegetarian => "egg-symbolic",
+        }
+    }
+
+    fn label(self) -> &'static str {
+        match self {
+            Diet::Vegan => "Vegan",
+            Diet::Vegetarian => "Vegetarian",
+        }
+    }
+
+    fn css_class(self) -> &'static str {
+        match self {
+            Diet::Vegan => "success",
+            Diet::Vegetarian => "warning",
+        }
+    }
+}
+fn diet(notes: &[String]) -> Option<Diet> {
+    let notes = notes.join(" ").to_lowercase();
+    if notes.contains("vegan") {
+        Some(Diet::Vegan)
+    } else if notes.contains("vegetar") || notes.contains("ohne fleisch") {
+        Some(Diet::Vegetarian)
+    } else {
+        None
     }
 }
 
@@ -84,9 +136,36 @@ mod tests {
         }
     }
 
+    fn notes(notes: &[&str]) -> Vec<String> {
+        notes.iter().map(|note| note.to_string()).collect()
+    }
+
+    #[test]
+    fn detects_vegan() {
+        assert_eq!(diet(&notes(&["Milch", "vegan"])), Some(Diet::Vegan));
+    }
+
+    #[test]
+    fn detects_vegetarian() {
+        assert_eq!(diet(&notes(&["vegetarisch"])), Some(Diet::Vegetarian));
+    }
+
+    #[test]
+    fn ohne_fleisch_counts_as_vegetarian() {
+        assert_eq!(diet(&notes(&["Ohne Fleisch"])), Some(Diet::Vegetarian));
+    }
+
+    #[test]
+    fn meat_is_neither() {
+        assert_eq!(diet(&notes(&["enthält Schweinefleisch"])), None);
+    }
+
     #[test]
     fn subtitle_without_notes_is_category() {
-        assert_eq!(subtitle(&meal("Tellergericht II - 3,90", &[])), "Tellergericht II");
+        assert_eq!(
+            subtitle(&meal("Tellergericht II - 3,90", &[])),
+            "Tellergericht II"
+        );
     }
 
     #[test]
