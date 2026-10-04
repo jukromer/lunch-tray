@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Lunch Tray
+Comment=See what's on the menu at your canteen
+Exec=lunch-tray
+Icon=de.jukromer.LunchTray
+Terminal=false
+Type=Application
+Categories=GTK;GNOME;Utility;
+Keywords=canteen;mensa;cafeteria;menu;lunch;food;
+StartupNotify=true

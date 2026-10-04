@@ -16,6 +16,8 @@ Lunch Tray is a native GNOME app for the menus of all canteens listed on [OpenMe
 - Menus of more than 1300 canteens, searchable by name or city
 - Browse the days of the week
 - Prices for students, employees and guests
+- Remembers your canteen and price group
+- Shows the last saved menu when you are offline
 
 ## Building
 
@@ -26,9 +28,17 @@ sudo apt install libgtk-4-dev libadwaita-1-dev
 cargo run
 ```
 
+## Installing for your user
+
+```bash
+./install-local.sh
+```
+
+This builds a release binary and installs it together with its desktop file and icons to `~/.local`, so Lunch Tray shows up in the GNOME overview. Run it again after pulling changes. To uninstall, delete `~/.local/bin/lunch-tray`, `~/.local/share/applications/de.jukromer.LunchTray.desktop` and the two `de.jukromer.LunchTray` icons under `~/.local/share/icons/hicolor/`.
+
 ## Status
 
-Early development, not packaged yet. Planned next: remembering your canteen, an offline cache, allergen and dietary notes, and a Flatpak.
+Early development, not packaged yet. Planned next: allergen and dietary notes, a nicer layout, and a Flatpak.
 
 ## Data
 
