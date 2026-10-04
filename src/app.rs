@@ -276,6 +276,7 @@ impl Component for App {
             }
             AppMsg::SelectCanteen(canteen) => {
                 self.canteen = canteen;
+                self.offline = false;
                 self.state = State::Loading;
                 load_meals(&sender, self.canteen.id);
                 self.save_config();
@@ -316,6 +317,7 @@ impl Component for App {
                     self.show_days(cache::upcoming(days, chrono::Local::now().date_naive()));
                 }
                 None => {
+                    self.offline = false;
                     self.state = State::Failed(error.to_string());
                 }
             },
