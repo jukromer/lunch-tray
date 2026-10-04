@@ -42,7 +42,7 @@ pub enum AppMsg {
 
 #[derive(Debug)]
 pub enum CommandMsg {
-    Loaded(Result<Vec<Day>, reqwest::Error>),
+    Loaded(u32, Result<Vec<Day>, reqwest::Error>),
 }
 
 #[relm4::component(pub)]
@@ -304,14 +304,17 @@ impl Component for App {
         _root: &Self::Root,
     ) {
         match msg {
-            CommandMsg::Loaded(Ok(days)) => {
-                if let Err(error) = cache::save(self.canteen.id, &days) {
+            CommandMsg::Loaded(canteen_id, _) if canteen_id != self.canteen.id => {
+                //Answer for a canteen that is no longer selected
+            }
+            CommandMsg::Loaded(canteen_id, Ok(days)) => {
+                if let Err(error) = cache::save(canteen_id, &days) {
                     eprintln!("Could not cache the menu: {error}");
                 }
                 self.offline = false;
                 self.show_days(days);
             }
-            CommandMsg::Loaded(Err(error)) => match cache::load(self.canteen.id) {
+            CommandMsg::Loaded(canteen_id, Err(error)) => match cache::load(canteen_id) {
                 Some(days) => {
                     self.offline = true;
                     self.show_days(cache::upcoming(days, chrono::Local::now().date_naive()));
@@ -377,7 +380,9 @@ impl App {
 }
 
 fn load_meals(sender: &ComponentSender<App>, canteen_id: u32) {
-    sender.oneshot_command(async move { CommandMsg::Loaded(api::fetch_meals(canteen_id).await) });
+    sender.oneshot_command(async move {
+        CommandMsg::Loaded(canteen_id, api::fetch_meals(canteen_id).await)
+    });
 }
 
 fn previous_index(selected: usize) -> usize {
