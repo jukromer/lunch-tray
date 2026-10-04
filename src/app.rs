@@ -2,13 +2,13 @@ use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
 use crate::api;
+use crate::canteen_picker::{CanteenPicker, PickerOutput};
 use crate::meal_row::MealRow;
-use crate::model::{Day, PriceGroup};
-
-//ID of THA for early testing purpose
-const CANTEEN_ID: u32 = 803;
+use crate::model::{Canteen, Day, PriceGroup};
 
 pub struct App {
+    canteen: Canteen,
+    picker: Controller<CanteenPicker>,
     state: State,
     days: Vec<Day>,
     selected: usize,
@@ -29,6 +29,8 @@ pub enum AppMsg {
     PreviousDay,
     NextDay,
     SetPriceGroup(PriceGroup),
+    OpenPicker,
+    SelectCanteen(Canteen),
 }
 
 #[derive(Debug)]
@@ -52,7 +54,8 @@ impl Component for App {
                 add_top_bar = &adw::HeaderBar {
                     #[wrap(Some)]
                     set_title_widget = &adw::WindowTitle {
-                        set_title: "Mensa TH Augsburg",
+                        #[watch]
+                        set_title: &model.canteen.name,
                         #[watch]
                         set_subtitle: &model.subtitle(),
                     },
@@ -71,6 +74,12 @@ impl Component for App {
                         #[watch]
                         set_sensitive: model.selected + 1 < model.days.len(),
                         connect_clicked => AppMsg::NextDay,
+                    },
+
+                    pack_end = &gtk::Button {
+                        set_icon_name: "find-location-symbolic",
+                        set_tooltip_text: Some("Choose Canteen"),
+                        connect_clicked => AppMsg::OpenPicker,
                     },
                 },
                 add_top_bar = &adw::Clamp {
@@ -161,7 +170,18 @@ impl Component for App {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
+        let picker = CanteenPicker::builder()
+            .launch(())
+            .forward(sender.input_sender(), |output| match output {
+                PickerOutput::Selected(canteen) => AppMsg::SelectCanteen(canteen),
+            });
         let model = App {
+            canteen: Canteen {
+                id: 803,
+                name: String::from("Mensa TH Augsburg"),
+                city: String::from("Augsbrurg"),
+            },
+            picker,
             state: State::Loading,
             days: Vec::new(),
             selected: 0,
@@ -171,16 +191,16 @@ impl Component for App {
         let meal_list = model.meals.widget();
         let widgets = view_output!();
 
-        load_meals(&sender);
+        load_meals(&sender, model.canteen.id);
 
         ComponentParts { model, widgets }
     }
 
-    fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
+    fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, root: &Self::Root) {
         match msg {
             AppMsg::Reload => {
                 self.state = State::Loading;
-                load_meals(&sender);
+                load_meals(&sender, self.canteen.id);
             }
             AppMsg::PreviousDay => {
                 self.selected = previous_index(self.selected);
@@ -193,6 +213,14 @@ impl Component for App {
             AppMsg::SetPriceGroup(price_group) => {
                 self.price_group = price_group;
                 self.show_selected_day();
+            }
+            AppMsg::OpenPicker => {
+                self.picker.widget().present(Some(root));
+            }
+            AppMsg::SelectCanteen(canteen) => {
+                self.canteen = canteen;
+                self.state = State::Loading;
+                load_meals(&sender, self.canteen.id);
             }
         }
     }
@@ -252,8 +280,8 @@ impl App {
     }
 }
 
-fn load_meals(sender: &ComponentSender<App>) {
-    sender.oneshot_command(async { CommandMsg::Loaded(api::fetch_meals(CANTEEN_ID).await) });
+fn load_meals(sender: &ComponentSender<App>, canteen_id: u32) {
+    sender.oneshot_command(async move { CommandMsg::Loaded(api::fetch_meals(canteen_id).await) });
 }
 
 fn previous_index(selected: usize) -> usize {

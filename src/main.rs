@@ -1,5 +1,6 @@
 mod api;
 mod app;
+mod canteen_picker;
 mod meal_row;
 mod model;
 

@@ -21,6 +21,20 @@ pub struct Prices {
     pub others: Option<f64>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct Canteen {
+    pub id: u32,
+    pub name: String,
+    pub city: String,
+}
+
+impl Canteen {
+    pub fn matches(&self, query: &str) -> bool {
+        let query = query.to_lowercase();
+        self.name.to_lowercase().contains(&query) || self.city.to_lowercase().contains(&query)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PriceGroup {
     Students,
@@ -67,6 +81,14 @@ mod tests {
         }
     }
 
+    fn tha() -> Canteen {
+        Canteen {
+            id: 803,
+            name: String::from("Mensa TH Augsburg"),
+            city: String::from("Augsburg"),
+        }
+    }
+
     #[test]
     fn students_pay_student_price() {
         assert_eq!(PriceGroup::Students.price(&prices()), Some(3.1));
@@ -80,5 +102,25 @@ mod tests {
     #[test]
     fn guests_use_others_field() {
         assert_eq!(PriceGroup::Guests.price(&prices()), None);
+    }
+
+    #[test]
+    fn empty_query_matches_everything() {
+        assert!(tha().matches(""));
+    }
+
+    #[test]
+    fn matches_name_ignoring_case() {
+        assert!(tha().matches("mensa th"));
+    }
+
+    #[test]
+    fn matches_city_ignoring_case() {
+        assert!(tha().matches("AUGSBURG"));
+    }
+
+    #[test]
+    fn rejects_other_cities() {
+        assert!(!tha().matches("berlin"));
     }
 }
