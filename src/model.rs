@@ -12,6 +12,8 @@ pub struct Meal {
     pub name: String,
     pub category: String,
     pub prices: Prices,
+    #[serde(default)]
+    pub notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
