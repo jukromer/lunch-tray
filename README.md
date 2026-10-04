@@ -18,6 +18,14 @@ Lunch Tray is a native GNOME app for the menus of all canteens listed on [OpenMe
 - Prices for students, employees and guests
 - Remembers your canteen and price group
 - Shows the last saved menu when you are offline
+- Allergen and dietary notes, with icons for vegan and vegetarian meals (where the canteen provides them)
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| <kbd>Alt</kbd>+<kbd>←</kbd> / <kbd>Alt</kbd>+<kbd>→</kbd> | Previous / next day |
+| <kbd>Ctrl</kbd>+<kbd>Q</kbd> | Quit |
 
 ## Building
 
@@ -38,7 +46,7 @@ This builds a release binary and installs it together with its desktop file and 
 
 ## Status
 
-Early development, not packaged yet. Planned next: allergen and dietary notes, a nicer layout, and a Flatpak.
+Early development, not packaged yet. Planned next: a filter for vegetarian meals, a nicer layout, and a Flatpak.
 
 ## Data
 
@@ -46,4 +54,4 @@ Menus come from the [OpenMensa API](https://docs.openmensa.org/api/v2/). Lunch T
 
 ## License
 
-Lunch Tray is licensed under the GPL-3.0-or-later, see [LICENSE](LICENSE). The symbolic icon is `cutlery-symbolic` from the GNOME Icon Development Kit (CC0).
+Lunch Tray is licensed under the GPL-3.0-or-later, see [LICENSE](LICENSE). The symbolic icons (cutlery, leaf and egg) are from the GNOME Icon Development Kit by Jakub Steiner (CC0).
