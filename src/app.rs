@@ -52,16 +52,30 @@ impl Component for App {
     view! {
         adw::ApplicationWindow {
             set_title: Some("Lunch Tray"),
-            set_default_size: (420, 640),
+            set_default_size: (460, 640),
 
             adw::ToolbarView {
                 add_top_bar = &adw::HeaderBar {
                     #[wrap(Some)]
-                    set_title_widget = &adw::WindowTitle {
-                        #[watch]
-                        set_title: &model.canteen.name,
-                        #[watch]
-                        set_subtitle: &model.subtitle(),
+                    set_title_widget = &gtk::Button {
+                        add_css_class: "flat",
+                        set_tooltip_text: Some("Choose Canteen"),
+                        connect_clicked => AppMsg::OpenPicker,
+
+                        gtk::Box {
+                            set_spacing: 6,
+
+                            adw::WindowTitle {
+                                #[watch]
+                                set_title: &model.canteen.name,
+                                #[watch]
+                                set_subtitle: &model.subtitle(),
+                            },
+
+                            gtk::Image {
+                                set_icon_name: Some("pan-down-symbolic"),
+                            },
+                        },
                     },
 
                     pack_start = &gtk::Button {
@@ -72,18 +86,12 @@ impl Component for App {
                         connect_clicked => AppMsg::PreviousDay,
                     },
 
-                    pack_end = &gtk::Button {
+                    pack_start = &gtk::Button {
                         set_icon_name: "go-next-symbolic",
                         set_tooltip_text: Some("Next Day"),
                         #[watch]
                         set_sensitive: model.selected + 1 < model.days.len(),
                         connect_clicked => AppMsg::NextDay,
-                    },
-
-                    pack_end = &gtk::Button {
-                        set_icon_name: "find-location-symbolic",
-                        set_tooltip_text: Some("Choose Canteen"),
-                        connect_clicked => AppMsg::OpenPicker,
                     },
                 },
                 add_top_bar = &adw::Clamp {
