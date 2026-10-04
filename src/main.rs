@@ -4,6 +4,7 @@ mod canteen_picker;
 mod meal_row;
 mod model;
 mod config;
+mod cache;
 
 use relm4::RelmApp;
 

@@ -2,6 +2,7 @@ use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
 use crate::api;
+use crate::cache;
 use crate::canteen_picker::{CanteenPicker, PickerOutput};
 use crate::config::{self, Config};
 use crate::meal_row::MealRow;
@@ -13,6 +14,7 @@ pub struct App {
     state: State,
     days: Vec<Day>,
     selected: usize,
+    offline: bool,
     price_group: PriceGroup,
     meals: FactoryVecDeque<MealRow>,
 }
@@ -114,6 +116,13 @@ impl Component for App {
                         },
                     },
                 },
+                add_top_bar = &adw::Banner {
+                    set_title: "Offline: showing the last saved menu",
+                    set_button_label: Some("Retry"),
+                    #[watch]
+                    set_revealed: model.offline,
+                    connect_button_clicked => AppMsg::Reload,
+                },
 
                 #[wrap(Some)]
                 set_content = &gtk::Stack {
@@ -183,6 +192,7 @@ impl Component for App {
             state: State::Loading,
             days: Vec::new(),
             selected: 0,
+            offline: false,
             price_group: config.price_group,
             meals: FactoryVecDeque::builder().launch_default().detach(),
         };
@@ -233,19 +243,32 @@ impl Component for App {
     ) {
         match msg {
             CommandMsg::Loaded(Ok(days)) => {
-                self.days = days;
-                self.selected = 0;
-                self.state = State::Ready;
-                self.show_selected_day();
+                if let Err(error) = cache::save(self.canteen.id, &days) {
+                    eprintln!("Could not cache the menu: {error}");
+                }
+                self.offline = false;
+                self.show_days(days);
             }
-            CommandMsg::Loaded(Err(error)) => {
-                self.state = State::Failed(error.to_string());
+            CommandMsg::Loaded(Err(error)) => match cache::load(self.canteen.id) {
+                Some(days) => {
+                    self.offline = true;
+                    self.show_days(cache::upcoming(days, chrono::Local::now().date_naive()));
+                }
+                None => {
+                    self.state = State::Failed(error.to_string());
+                }
             }
         }
     }
 }
 
 impl App {
+    fn show_days(&mut self, days: Vec<Day>) {
+        self.days = days;
+        self.selected = 0;
+        self.state = State::Ready;
+        self.show_selected_day();
+    }
     fn save_config(&self) {
         let config = Config {
             canteen: self.canteen.clone(),

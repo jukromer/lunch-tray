@@ -1,20 +1,20 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Day {
     pub date: NaiveDate,
     pub meals: Vec<Meal>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Meal {
     pub name: String,
     pub category: String,
     pub prices: Prices,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Prices {
     pub students: Option<f64>,
     pub employees: Option<f64>,
