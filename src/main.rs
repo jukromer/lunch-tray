@@ -1,5 +1,6 @@
 mod api;
 mod app;
+mod meal_row;
 mod model;
 
 use relm4::RelmApp;

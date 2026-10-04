@@ -2,13 +2,15 @@ use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
 use crate::api;
+use crate::meal_row::MealRow;
 use crate::model::Day;
 
 //ID of THA for early testing prupose
 const CANTEEN_ID: u32 = 803;
 
 pub struct App {
-    text: String,
+    subtitle: String,
+    meals: FactoryVecDeque<MealRow>,
 }
 
 #[derive(Debug)]
@@ -29,17 +31,27 @@ impl Component for App {
             set_default_size: (420, 640),
 
             adw::ToolbarView {
-                add_top_bar = &adw::HeaderBar {},
+                add_top_bar = &adw::HeaderBar {
+                    #[wrap(Some)]
+                    set_title_widget = &adw::WindowTitle {
+                        set_title: "Mensa TH Augsburg",
+                        #[watch]
+                        set_subtitle: &model.subtitle,
+                    },
+                },
 
                 #[wrap(Some)]
                 set_content = &gtk::ScrolledWindow {
-                    gtk::Label {
-                        #[watch]
-                        set_label: &model.text,
-                        set_wrap: true,
-                        set_xalign: 0.0,
-                        set_valign: gtk::Align::Start,
-                        set_margin_all: 12,
+                    set_hscrollbar_policy: gtk::PolicyType::Never,
+
+                    adw::Clamp {
+                        #[local_ref]
+                        meal_list -> gtk::ListBox {
+                            set_selection_mode: gtk::SelectionMode::None,
+                            set_valign: gtk::Align::Start,
+                            set_margin_all: 12,
+                            add_css_class: "boxed-list",
+                        },
                     },
                 },
             },
@@ -51,8 +63,10 @@ impl Component for App {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = App {
-            text: String::from("Loading..."),
+            subtitle: String::from("Loading..."),
+            meals: FactoryVecDeque::builder().launch_default().detach(),
         };
+        let meal_list = model.meals.widget();
         let widgets = view_output!();
 
         sender.oneshot_command(async { CommandMsg::Loaded(api::fetch_meals(CANTEEN_ID).await) });
@@ -68,26 +82,19 @@ impl Component for App {
     ) {
         match msg {
             CommandMsg::Loaded(Ok(days)) => {
-                self.text = describe(&days);
+                if let Some(day) = days.first() {
+                    self.subtitle = day.date.format("%A, %B %-d").to_string();
+                    let mut meals = self.meals.guard();
+                    for meal in &day.meals {
+                        meals.push_back(meal.clone());
+                    }
+                } else {
+                    self.subtitle = String::from("No menu available");
+                }
             }
             CommandMsg::Loaded(Err(error)) => {
-                self.text = format!("Could not load the menu: {error}");
+                self.subtitle = format!("Error: {error}");
             }
         }
     }
-}
-
-fn describe(days: &[Day]) -> String {
-    let mut text = String::new();
-    for day in days {
-        text.push_str(&format!("{}\n", day.date));
-        for meal in &day.meals {
-            text.push_str(&format!(
-                "{} | {} | {:?}\n",
-                meal.name, meal.category, meal.prices.students
-            ));
-        }
-        text.push('\n');
-    }
-    text
 }
