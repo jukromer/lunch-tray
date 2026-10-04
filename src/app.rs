@@ -1,4 +1,5 @@
 use chrono::NaiveDate;
+use relm4::actions::{ActionName, RelmAction, RelmActionGroup};
 use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
@@ -35,6 +36,7 @@ pub enum AppMsg {
     SetPriceGroup(PriceGroup),
     OpenPicker,
     SelectCanteen(Canteen),
+    ShowAbout,
 }
 
 #[derive(Debug)]
@@ -50,7 +52,7 @@ impl Component for App {
     type CommandOutput = CommandMsg;
 
     view! {
-        adw::ApplicationWindow {
+        main_window = adw::ApplicationWindow {
             set_title: Some("Lunch Tray"),
             set_default_size: (460, 640),
 
@@ -76,6 +78,11 @@ impl Component for App {
                                 set_icon_name: Some("pan-down-symbolic"),
                             },
                         },
+                    },
+                    pack_end = &gtk::MenuButton {
+                        set_icon_name: "open-menu-symbolic",
+                        set_tooltip_text: Some("Main Menu"),
+                        set_menu_model: Some(&primary_menu),
                     },
 
                     pack_start = &gtk::Button {
@@ -205,8 +212,18 @@ impl Component for App {
             price_group: config.price_group,
             meals: FactoryVecDeque::builder().launch_default().detach(),
         };
+        let primary_menu = gtk::gio::Menu::new();
+        primary_menu.append(Some("About Lunch Tray"), Some(&AboutAction::action_name()));
+
         let meal_list = model.meals.widget();
         let widgets = view_output!();
+
+        let mut actions = RelmActionGroup::<WindowActions>::new();
+        let input = sender.input_sender().clone();
+        actions.add_action(RelmAction::<AboutAction>::new_stateless(move |_| {
+            input.emit(AppMsg::ShowAbout);
+        }));
+        actions.register_for_widget(&widgets.main_window);
 
         load_meals(&sender, model.canteen.id);
 
@@ -240,6 +257,19 @@ impl Component for App {
                 self.state = State::Loading;
                 load_meals(&sender, self.canteen.id);
                 self.save_config();
+            }
+            AppMsg::ShowAbout => {
+                let about = adw::AboutDialog::builder()
+                    .application_name("Lunch Tray")
+                    .application_icon(crate::APP_ID)
+                    .developer_name("Julian Kromer")
+                    .version(env!("CARGO_PKG_VERSION"))
+                    .comments("Menus of all canteens on OpenMensa")
+                    .website("https://github.com/jukromer/lunch-tray")
+                    .issue_url("https://github.com/jukromer/lunch-tray/issues")
+                    .license_type(gtk::License::Gpl30)
+                    .build();
+                about.present(Some(root));
             }
         }
     }
@@ -349,6 +379,9 @@ fn day_label(date: NaiveDate, today: NaiveDate) -> String {
         date.format("%A, %B %-d").to_string()
     }
 }
+
+relm4::new_action_group!(WindowActions, "win");
+relm4::new_stateless_action!(AboutAction, WindowActions, "about");
 
 #[cfg(test)]
 mod tests {
