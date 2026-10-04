@@ -1,4 +1,6 @@
+mod api;
 mod app;
+mod model;
 
 use relm4::RelmApp;
 
