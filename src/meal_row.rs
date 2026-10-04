@@ -21,7 +21,7 @@ impl FactoryComponent for MealRow {
         adw::ActionRow {
             set_use_markup: false,
             set_title: &self.meal.name,
-            set_subtitle: &self.meal.category,
+            set_subtitle: short_category(&self.meal.category),
 
             add_suffix = &gtk::Label {
                 set_label: &format_price(self.price_group.price(&self.meal.prices)),
@@ -44,6 +44,17 @@ fn format_price(price: Option<f64>) -> String {
         Some(p) => format!("{:.2} €", p).replace(".", ","),
         None => String::new(),
     }
+}
+
+fn short_category(category: &str) -> &str {
+    match category.rsplit_once(" - ") {
+        Some((name, suffix)) if looks_like_price(suffix) => name,
+        _ => category,
+    }
+}
+
+fn looks_like_price(text: &str) -> bool {
+    text.replace(',', ".").parse::<f64>().is_ok()
 }
 
 #[cfg(test)]
