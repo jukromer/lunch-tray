@@ -257,7 +257,7 @@ impl Component for App {
                 None => {
                     self.state = State::Failed(error.to_string());
                 }
-            }
+            },
         }
     }
 }

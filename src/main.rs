@@ -1,10 +1,10 @@
 mod api;
 mod app;
+mod cache;
 mod canteen_picker;
+mod config;
 mod meal_row;
 mod model;
-mod config;
-mod cache;
 
 use relm4::RelmApp;
 

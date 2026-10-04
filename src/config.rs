@@ -26,7 +26,9 @@ impl Default for Config {
 }
 
 fn config_path() -> PathBuf {
-    glib::user_config_dir().join("lunch-tray").join("config.json")
+    glib::user_config_dir()
+        .join("lunch-tray")
+        .join("config.json")
 }
 
 pub fn load() -> Config {
