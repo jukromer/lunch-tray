@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use relm4::actions::{ActionName, RelmAction, RelmActionGroup};
+use relm4::actions::{AccelsPlus, ActionName, RelmAction, RelmActionGroup};
 use relm4::adw::prelude::*;
 use relm4::prelude::*;
 
@@ -37,6 +37,7 @@ pub enum AppMsg {
     OpenPicker,
     SelectCanteen(Canteen),
     ShowAbout,
+    Quit,
 }
 
 #[derive(Debug)]
@@ -219,12 +220,30 @@ impl Component for App {
         let widgets = view_output!();
 
         let mut actions = RelmActionGroup::<WindowActions>::new();
+
         let input = sender.input_sender().clone();
         actions.add_action(RelmAction::<AboutAction>::new_stateless(move |_| {
             input.emit(AppMsg::ShowAbout);
         }));
+        let input = sender.input_sender().clone();
+        actions.add_action(RelmAction::<PreviousDayAction>::new_stateless(move |_| {
+            input.emit(AppMsg::PreviousDay);
+        }));
+        let input = sender.input_sender().clone();
+        actions.add_action(RelmAction::<NextDayAction>::new_stateless(move |_| {
+            input.emit(AppMsg::NextDay);
+        }));
+        let input = sender.input_sender().clone();
+        actions.add_action(RelmAction::<QuitAction>::new_stateless(move |_| {
+            input.emit(AppMsg::Quit);
+        }));
+
         actions.register_for_widget(&widgets.main_window);
 
+        let app = relm4::main_application();
+        app.set_accelerators_for_action::<PreviousDayAction>(&["<Alt>Left"]);
+        app.set_accelerators_for_action::<NextDayAction>(&["<Alt>Right"]);
+        app.set_accelerators_for_action::<QuitAction>(&["<Control>q"]);
         load_meals(&sender, model.canteen.id);
 
         ComponentParts { model, widgets }
@@ -248,6 +267,9 @@ impl Component for App {
                 self.price_group = price_group;
                 self.show_selected_day();
                 self.save_config();
+            }
+            AppMsg::Quit => {
+                relm4::main_application().quit();
             }
             AppMsg::OpenPicker => {
                 self.picker.widget().present(Some(root));
@@ -382,6 +404,9 @@ fn day_label(date: NaiveDate, today: NaiveDate) -> String {
 
 relm4::new_action_group!(WindowActions, "win");
 relm4::new_stateless_action!(AboutAction, WindowActions, "about");
+relm4::new_stateless_action!(PreviousDayAction, WindowActions, "previous-day");
+relm4::new_stateless_action!(NextDayAction, WindowActions, "next-day");
+relm4::new_stateless_action!(QuitAction, WindowActions, "quit");
 
 #[cfg(test)]
 mod tests {
