@@ -64,6 +64,8 @@ impl Component for App {
                         add_css_class: "flat",
                         set_tooltip_text: Some("Choose Canteen"),
                         connect_clicked => AppMsg::OpenPicker,
+                        #[watch]
+                        set_tooltip_text: Some(&model.canteen.name),
 
                         gtk::Box {
                             set_spacing: 6,
