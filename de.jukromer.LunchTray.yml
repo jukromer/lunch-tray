@@ -1,0 +1,36 @@
+id: de.jukromer.LunchTray
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: lunch-tray
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  env:
+    CARGO_HOME: /run/build/lunch-tray/cargo
+modules:
+  - name: lunch-tray
+    buildsystem: simple
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm755 target/release/lunch-tray /app/bin/lunch-tray
+      - install -Dm644 data/de.jukromer.LunchTray.desktop -t /app/share/applications
+      - install -Dm644 data/icons/hicolor/scalable/apps/de.jukromer.LunchTray.svg -t /app/share/icons/hicolor/scalable/apps
+      - install -Dm644 data/icons/hicolor/symbolic/apps/de.jukromer.LunchTray-symbolic.svg -t /app/share/icons/hicolor/symbolic/apps
+    sources:
+      - type: dir
+        path: .
+        skip:
+          - .git
+          - target
+          - build-dir
+          - .flatpak-builder
+      - cargo-sources.json
