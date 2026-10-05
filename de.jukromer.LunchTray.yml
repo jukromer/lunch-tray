@@ -25,6 +25,7 @@ modules:
       - install -Dm644 data/de.jukromer.LunchTray.desktop -t /app/share/applications
       - install -Dm644 data/icons/hicolor/scalable/apps/de.jukromer.LunchTray.svg -t /app/share/icons/hicolor/scalable/apps
       - install -Dm644 data/icons/hicolor/symbolic/apps/de.jukromer.LunchTray-symbolic.svg -t /app/share/icons/hicolor/symbolic/apps
+      - install -Dm644 data/de.jukromer.LunchTray.metainfo.xml -t /app/share/metainfo
     sources:
       - type: dir
         path: .

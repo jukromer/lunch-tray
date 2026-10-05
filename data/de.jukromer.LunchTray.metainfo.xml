@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>de.jukromer.LunchTray</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Lunch Tray</name>
+  <summary>What's for lunch at your canteen</summary>
+  <description>
+    <p>Lunch Tray shows the menus of more than 1300 canteens listed on OpenMensa. Pick your canteen, browse the days of the week and see the prices for your group.</p>
+    <ul>
+      <li>Searchable list of all canteens on OpenMensa</li>
+      <li>Prices for students, employees and guests</li>
+      <li>Remembers your canteen and shows the last saved menu when you are offline</li>
+      <li>Allergen and dietary notes with icons for vegan and vegetarian meals, where the canteen provides them</li>
+    </ul>
+    <p>Lunch Tray is not affiliated with OpenMensa.</p>
+  </description>
+  <developer id="de.jukromer">
+    <name>Julian Kromer</name>
+  </developer>
+  <launchable type="desktop-id">de.jukromer.LunchTray.desktop</launchable>
+  <url type="homepage">https://github.com/jukromer/lunch-tray</url>
+  <url type="bugtracker">https://github.com/jukromer/lunch-tray/issues</url>
+  <url type="vcs-browser">https://github.com/jukromer/lunch-tray</url>
+  <content_rating type="oars-1.1"/>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/jukromer/lunch-tray/main/data/screenshots/main-window.png</image>
+      <caption>Menu of the day with prices for students</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/jukromer/lunch-tray/main/data/screenshots/canteen-picker.png</image>
+      <caption>Choosing a canteen</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.1.0" date="2026-10-05">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+</component>
