@@ -12,6 +12,10 @@ use relm4::gtk::prelude::*;
 const APP_ID: &str = "de.jukromer.LunchTray";
 
 fn main() {
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("Failed to install the TLS crypto provider");
+
     relm4::gtk::gio::resources_register_include!("lunch-tray.gresource")
         .expect("Failed to register resources");
 
