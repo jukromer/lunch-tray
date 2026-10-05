@@ -44,9 +44,26 @@ cargo run
 
 This builds a release binary and installs it together with its desktop file and icons to `~/.local`, so Lunch Tray shows up in the GNOME overview. Run it again after pulling changes. To uninstall, delete `~/.local/bin/lunch-tray`, `~/.local/share/applications/de.jukromer.LunchTray.desktop` and the two `de.jukromer.LunchTray` icons under `~/.local/share/icons/hicolor/`.
 
+## Building the Flatpak
+
+Needs `org.flatpak.Builder`, `org.gnome.Sdk//50` and `org.freedesktop.Sdk.Extension.rust-stable//25.08` from Flathub.
+
+```bash
+flatpak run org.flatpak.Builder --force-clean --user --install build-dir de.jukromer.LunchTray.yml
+flatpak run de.jukromer.LunchTray
+```
+
+If the build stops with `Failure spawning rofiles-fuse`, add `--disable-rofiles-fuse` after `--force-clean`.
+
+The build runs offline, so `cargo-sources.json` has to be regenerated whenever `Cargo.lock` changes:
+
+```bash
+flatpak run --command=flatpak-cargo-generator org.flatpak.Builder Cargo.lock -o cargo-sources.json
+```
+
 ## Status
 
-Early development, not packaged yet. Planned next: a filter for vegetarian meals, a nicer layout, and a Flatpak.
+Early development. The Flatpak builds locally and the Flathub submission is in preparation. Planned next: a filter for vegetarian meals and a nicer layout.
 
 ## Data
 
