@@ -5,7 +5,7 @@ use relm4::prelude::*;
 
 use crate::api;
 use crate::cache;
-use crate::canteen_picker::{CanteenPicker, PickerOutput};
+use crate::canteen_picker::{CanteenPicker, PickerMsg, PickerOutput};
 use crate::config::{self, Config};
 use crate::meal_row::MealRow;
 use crate::model::{Canteen, Day, PriceGroup};
@@ -154,7 +154,7 @@ impl Component for App {
                         set_icon_name: Some("network-error-symbolic"),
                         set_title: "Could Not Load the Menu",
                         #[watch]
-                        set_description: model.error_message(),
+                        set_description: model.error_message().as_deref(),
 
                         #[wrap(Some)]
                         set_child = &gtk::Button {
@@ -272,6 +272,7 @@ impl Component for App {
                 relm4::main_application().quit();
             }
             AppMsg::OpenPicker => {
+                self.picker.emit(PickerMsg::Load);
                 self.picker.widget().present(Some(root));
             }
             AppMsg::SelectCanteen(canteen) => {
@@ -364,9 +365,9 @@ impl App {
         }
     }
 
-    fn error_message(&self) -> Option<&str> {
+    fn error_message(&self) -> Option<String> {
         match &self.state {
-            State::Failed(message) => Some(message),
+            State::Failed(message) => Some(gtk::glib::markup_escape_text(message).to_string()),
             _ => None,
         }
     }

@@ -11,10 +11,19 @@ pub struct CanteenPicker {
     query: String,
     results: Vec<Canteen>,
     rows: FactoryVecDeque<CanteenRow>,
+    state: State,
+}
+
+#[derive(Debug)]
+enum State {
+    Loading,
+    Ready,
+    Failed(String),
 }
 
 #[derive(Debug)]
 pub enum PickerMsg {
+    Load,
     Search(String),
     Activated(usize),
 }
@@ -60,22 +69,57 @@ impl Component for CanteenPicker {
                 },
 
                 #[wrap(Some)]
-                set_content = &gtk::ScrolledWindow {
-                    set_hscrollbar_policy: gtk::PolicyType::Never,
-                    set_vexpand: true,
+                set_content = &gtk::Stack {
+                    add_named[Some("loading")] = &adw::Spinner {
+                        set_halign: gtk::Align::Center,
+                        set_valign: gtk::Align::Center,
+                        set_width_request: 32,
+                        set_height_request: 32,
+                    },
 
-                    adw::Clamp {
-                        #[local_ref]
-                        row_list -> gtk::ListBox {
-                            set_selection_mode: gtk::SelectionMode::None,
-                            set_valign: gtk::Align::Start,
-                            set_margin_all: 12,
-                            add_css_class: "boxed-list",
-                            connect_row_activated[sender] => move |_, row| {
-                                sender.input(PickerMsg::Activated(row.index() as usize));
+                    add_named[Some("failed")] = &adw::StatusPage {
+                        add_css_class: "compact",
+                        set_icon_name: Some("network-error-symbolic"),
+                        set_title: "Could Not Load Canteens",
+                        #[watch]
+                        set_description: model.error_message().as_deref(),
+
+                        #[wrap(Some)]
+                        set_child = &gtk::Button {
+                            set_label: "Try Again",
+                            set_halign: gtk::Align::Center,
+                            add_css_class: "pill",
+                            connect_clicked => PickerMsg::Load,
+                        },
+                    },
+
+                    add_named[Some("empty")] = &adw::StatusPage {
+                        add_css_class: "compact",
+                        set_icon_name: Some("system-search-symbolic"),
+                        set_title: "No Canteens Found",
+                        set_description: Some("Try another name or city."),
+                    },
+
+                    add_named[Some("list")] = &gtk::ScrolledWindow {
+                        set_hscrollbar_policy: gtk::PolicyType::Never,
+                        set_vexpand: true,
+
+                        adw::Clamp {
+                            #[local_ref]
+                            row_list -> gtk::ListBox {
+                                set_selection_mode: gtk::SelectionMode::None,
+                                set_valign: gtk::Align::Start,
+                                set_margin_all: 12,
+                                add_css_class: "boxed-list",
+                                connect_row_activated[sender] => move |_, row| {
+                                    sender.input(PickerMsg::Activated(row.index() as usize));
+                                },
                             },
                         },
                     },
+
+                    #[watch]
+                    set_visible_child_name: model.page(),
                 },
             },
         }
@@ -90,17 +134,24 @@ impl Component for CanteenPicker {
             query: String::new(),
             results: Vec::new(),
             rows: FactoryVecDeque::builder().launch_default().detach(),
+            state: State::Loading,
         };
         let row_list = model.rows.widget();
         let widgets = view_output!();
 
-        sender.oneshot_command(async { PickerCommand::Loaded(api::fetch_canteens().await) });
+        load_canteens(&sender);
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, root: &Self::Root) {
         match msg {
+            PickerMsg::Load => {
+                if self.canteens.is_empty() && !matches!(self.state, State::Loading) {
+                    self.state = State::Loading;
+                    load_canteens(&sender);
+                }
+            }
             PickerMsg::Search(query) => {
                 self.query = query;
                 self.show_results();
@@ -123,10 +174,11 @@ impl Component for CanteenPicker {
         match msg {
             PickerCommand::Loaded(Ok(canteens)) => {
                 self.canteens = canteens;
+                self.state = State::Ready;
                 self.show_results();
             }
             PickerCommand::Loaded(Err(error)) => {
-                eprintln!("Could not load canteens: {error}");
+                self.state = State::Failed(error.to_string());
             }
         }
     }
@@ -148,6 +200,26 @@ impl CanteenPicker {
             rows.push_back(canteen.clone());
         }
     }
+
+    fn page(&self) -> &'static str {
+        match self.state {
+            State::Loading => "loading",
+            State::Failed(_) => "failed",
+            State::Ready if self.results.is_empty() => "empty",
+            State::Ready => "list",
+        }
+    }
+
+    fn error_message(&self) -> Option<String> {
+        match &self.state {
+            State::Failed(message) => Some(gtk::glib::markup_escape_text(message).to_string()),
+            _ => None,
+        }
+    }
+}
+
+fn load_canteens(sender: &ComponentSender<CanteenPicker>) {
+    sender.oneshot_command(async { PickerCommand::Loaded(api::fetch_canteens().await) });
 }
 
 #[derive(Debug)]
