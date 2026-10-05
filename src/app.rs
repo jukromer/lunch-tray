@@ -295,6 +295,12 @@ impl Component for App {
                     .issue_url("https://github.com/jukromer/lunch-tray/issues")
                     .license_type(gtk::License::Gpl30)
                     .build();
+                about.add_legal_section(
+                    "Menu Data",
+                    None,
+                    gtk::License::Custom,
+                    Some("Menu Data from <a href=\"https://openmensa.org\">OpenMensa</a>"),
+                );
                 about.present(Some(root));
             }
         }
